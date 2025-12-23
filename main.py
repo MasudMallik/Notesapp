@@ -2,8 +2,16 @@ from fastapi import FastAPI,Form,Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse,JSONResponse,RedirectResponse
 from fastapi.templating import Jinja2Templates
-from modules.user_hash import new_user
+from modules.user_structure import new_user
 from pydantic import ValidationError
+from pymongo import MongoClient
+from dotenv import dotenv_values
+from modules.hash_user_data import hash_password,check_password
+
+config=dotenv_values(".env")
+client=MongoClient(config["mongodb_url"])
+users=client["user_details"]
+
 
 app=FastAPI()
 app.mount("/static",StaticFiles(directory="static"),name="static")
@@ -16,12 +24,6 @@ def login(request:Request):
 @app.get("/register",response_class=HTMLResponse)
 def login(request:Request):
     return templates.TemplateResponse("register.html",{"request":request})
-
-
-@app.post("/",response_class=HTMLResponse)
-def login(request:Request,email:str=Form(...,description="email of the user"),password:str=Form(...,description="password of thr user")):
-    print(email,password)
-    return templates.TemplateResponse("login.html",{"request":request})
 
 
 @app.post("/register",response_class=HTMLResponse)
@@ -40,8 +42,6 @@ async def register(request:Request,
                 confirm_password=confirm_password
             )
         except ValidationError as e:
-            print(e.errors())  # list of dicts
-
             t = []
             for err in e.errors():
                 loc = err.get("loc", [])
@@ -54,5 +54,23 @@ async def register(request:Request,
 
             return templates.TemplateResponse(
                 "register.html",
-                {"request": request, "confirm": t,}
+                {"request": request, "confirm": t}
             )
+        new_hashed_password=hash_password(password)
+        print(password,new_hashed_password)
+        collections=users["user"]
+        collections.insert_one({"name":name,"email":email,"password":new_hashed_password})
+        return templates.TemplateResponse("login.html",{"request":request,"confirm":"user succesfully created"})
+    
+@app.post("/",response_class=HTMLResponse)
+def login(request:Request,
+          email:str=Form(...,description="enter your email"),
+          password:str=Form(...,description="enter your password")):
+    if email and password:
+        data=users["user"].find_one({"email":email})
+        if data:
+            password_to_check=data["password"]
+            if check_password(password=password,hashed=password_to_check):
+                return templates.TemplateResponse("login.html",{"request":request,"confirm":"login succesfull"})
+        else:
+            return templates.TemplateResponse("register.html",{"request":request,"confirm":"please create your account"})
