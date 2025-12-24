@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from pymongo import MongoClient
 from dotenv import dotenv_values
 from modules.hash_user_data import hash_password,check_password
+from modules.jwt_token import create_token,decode_token
 
 config=dotenv_values(".env")
 client=MongoClient(config["mongodb_url"])
@@ -22,8 +23,48 @@ def login(request:Request):
     return templates.TemplateResponse("login.html",{"request":request})
 
 @app.get("/register",response_class=HTMLResponse)
-def login(request:Request):
+def register(request:Request):
     return templates.TemplateResponse("register.html",{"request":request})
+
+
+@app.get("/home",response_class=HTMLResponse)
+def home_page(request:Request):
+    return templates.TemplateResponse("home.html",{"request":request})
+
+@app.get("/settings",response_class=HTMLResponse)
+def settings_page(request:Request):
+    token=request.cookies.get("token")
+    if not token:
+        return RedirectResponse("/",status_code=302)
+    else:
+        try:
+            details=decode_token(token)
+        except Exception:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie("token")
+            return response
+        else:
+            details_from_db=users["user"]
+            data=details_from_db.find_one({"email":details["email"]})
+            return templates.TemplateResponse("settings.html",{"request":request,"name":data["name"],"email":data["email"],"password":data["password"]}) 
+    
+
+
+@app.get("/add_task",response_class=HTMLResponse)
+def add_task(request:Request):
+    tok=request.cookies.get("token")
+    if not tok:
+        return RedirectResponse("/",status_code=302)
+    else:
+        try:
+            data=decode_token(tok)
+        except Exception:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie("token")
+            return response
+        else:
+            name=data.get("name")
+            return templates.TemplateResponse("add_task.html",{"request":request,"name":name})
 
 
 @app.post("/register",response_class=HTMLResponse)
@@ -59,6 +100,7 @@ async def register(request:Request,
         new_hashed_password=hash_password(password)
         print(password,new_hashed_password)
         collections=users["user"]
+        individual_user=users[name]
         collections.insert_one({"name":name,"email":email,"password":new_hashed_password})
         return templates.TemplateResponse("login.html",{"request":request,"confirm":"user succesfully created"})
     
@@ -71,6 +113,17 @@ def login(request:Request,
         if data:
             password_to_check=data["password"]
             if check_password(password=password,hashed=password_to_check):
-                return templates.TemplateResponse("login.html",{"request":request,"confirm":"login succesfull"})
+                token=create_token({"email":email,"name":data["name"]})
+                response=templates.TemplateResponse("home.html",{"request":request,"name":data["name"]})
+                response.set_cookie(key="token",value=token,httponly=True)
+                return response
+            else:
+                return templates.TemplateResponse("login.html",{"request":request,"confirm":"password didn't match"})
         else:
             return templates.TemplateResponse("register.html",{"request":request,"confirm":"please create your account"})
+        
+@app.get("/logout",response_class=HTMLResponse)
+async def logout(request:Request):
+    response=RedirectResponse("/",status_code=302)
+    response.delete_cookie("token")
+    return response

@@ -11,6 +11,8 @@ def decode_token(token):
     try:
         data=decode(token,keys["SECRET_KEY"],algorithms=[keys["ALGORITHM"]])
     except InvalidTokenError:
-        return "invalid user"
+        return None
     except ExpiredSignatureError:
-        return "you are logged out because you logged in more than 30 minutes"
+        return None
+    else:
+        return data
