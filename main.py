@@ -127,3 +127,9 @@ async def logout(request:Request):
     response=RedirectResponse("/",status_code=302)
     response.delete_cookie("token")
     return response
+@app.post("/add_task",response_class=HTMLResponse)
+def add_task(request:Request,
+             title:str=Form(...,description="title of your task"),
+             description:str=Form(...,description="description of your task")):
+    print(title,description)
+    return templates.TemplateResponse("home.html",{"request":request})
