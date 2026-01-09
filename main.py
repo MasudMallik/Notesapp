@@ -100,7 +100,6 @@ async def register(request:Request,
         new_hashed_password=hash_password(password)
         print(password,new_hashed_password)
         collections=users["user"]
-        individual_user=users[name]
         collections.insert_one({"name":name,"email":email,"password":new_hashed_password})
         return templates.TemplateResponse("login.html",{"request":request,"confirm":"user succesfully created"})
     
@@ -127,9 +126,26 @@ async def logout(request:Request):
     response=RedirectResponse("/",status_code=302)
     response.delete_cookie("token")
     return response
+
+###################     ###############
 @app.post("/add_task",response_class=HTMLResponse)
 def add_task(request:Request,
              title:str=Form(...,description="title of your task"),
              description:str=Form(...,description="description of your task")):
+    user=request.cookies.get("token")
+    if not user:
+        return RedirectResponse("/",status_code=302)
+    else:
+        try:
+            data=decode_token(user)
+        except Exception:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie("token")
+            return response
+        else:
+            name=data.get("name")
+            users=client[name]
+
+            return templates.TemplateResponse("home.html",{"request":request})
     print(title,description)
     return templates.TemplateResponse("home.html",{"request":request})
