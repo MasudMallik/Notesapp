@@ -5,12 +5,11 @@ from fastapi.templating import Jinja2Templates
 from modules.user_structure import new_user
 from pydantic import ValidationError
 from pymongo import MongoClient
-from dotenv import dotenv_values
 from modules.hash_user_data import hash_password,check_password
 from modules.jwt_token import create_token,decode_token
 
-config=dotenv_values(".env")
-client=MongoClient(config["mongodb_url"])
+
+client=MongoClient("mongodb_url")
 users=client["user_details"]
 
 
