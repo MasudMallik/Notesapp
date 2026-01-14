@@ -28,7 +28,11 @@ def register(request:Request):
 
 @app.get("/home",response_class=HTMLResponse)
 def home_page(request:Request):
-    return templates.TemplateResponse("home.html",{"request":request})
+    name=request.cookies.get("name")
+    users=client["user_added_tasks"]
+    individual_user=users[name]
+    data=list(individual_user.find())
+    return templates.TemplateResponse("home.html",{"request":request,"data":data})
 
 @app.get("/settings",response_class=HTMLResponse)
 def settings_page(request:Request):
@@ -148,6 +152,6 @@ def add_task(request:Request,
             individual_user.insert_one({"Title": title,"Description":description})
             
 
-            return templates.TemplateResponse("home.html",{"request":request})
+            return templates.TemplateResponse("home.html",{"request":request,"name":name})
     print(title,description)
     return templates.TemplateResponse("home.html",{"request":request})

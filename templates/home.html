@@ -33,26 +33,25 @@
         </header>
 
         <!-- Task List -->
-        <section class="task-list">
+      {% for task in data %}
+<section class="task-list">
+  <div class="task-card">
+    <div class="task-info">
+      <h4>{{ task.Title }}</h4>
+      <p>{{ task.Description }}</p>
+    </div>
 
-            <div class="task-card">
-                <div class="task-info">
-                    <h4>Finish FastAPI project</h4>
-                    <p>Complete backend and UI</p>
-                </div>
-
-                <div class="task-actions">
-                    <form action="/edit-task/1" method="get">
-                        <button class="edit-btn">Edit</button>
-                    </form>
-                    <form action="/delete-task/1" method="post">
-                        <button class="delete-btn">Delete</button>
-                    </form>
-                </div>
-            </div>
-
-        </section>
-
+    <div class="task-actions">
+      <form action="/edit-task/{{ task._id }}" method="get">
+        <button class="edit-btn">Edit</button>
+      </form>
+      <form action="/delete-task/{{ task._id }}" method="post">
+        <button class="delete-btn">Delete</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endfor %}
     </main>
 </div>
 
