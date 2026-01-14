@@ -143,7 +143,10 @@ def add_task(request:Request,
             return response
         else:
             name=data.get("name")
-            users=client[name]
+            users=client["user_added_tasks"]
+            individual_user=users[name]
+            individual_user.insert_one({"Title": title,"Description":description})
+            
 
             return templates.TemplateResponse("home.html",{"request":request})
     print(title,description)
