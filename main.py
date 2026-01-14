@@ -7,9 +7,9 @@ from pydantic import ValidationError
 from pymongo import MongoClient
 from modules.hash_user_data import hash_password,check_password
 from modules.jwt_token import create_token,decode_token
+import os
 
-
-client=MongoClient("mongodb_url")
+client=MongoClient(os.getenv("mongodb_url"))
 users=client["user_details"]
 
 
