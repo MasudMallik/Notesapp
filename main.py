@@ -8,6 +8,8 @@ from pymongo import MongoClient
 from modules.hash_user_data import hash_password,check_password
 from modules.jwt_token import create_token,decode_token
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 client=MongoClient(os.getenv("mongodb_url"))
 users=client["user_details"]
@@ -26,13 +28,23 @@ def register(request:Request):
     return templates.TemplateResponse("register.html",{"request":request})
 
 
-@app.get("/home",response_class=HTMLResponse)
-def home_page(request:Request):
-    name=request.cookies.get("name")
-    users=client["user_added_tasks"]
-    individual_user=users[name]
-    data=list(individual_user.find())
-    return templates.TemplateResponse("home.html",{"request":request,"data":data})
+@app.get("/home", response_class=HTMLResponse)
+def home_page(request: Request):
+    token = request.cookies.get("token")
+    if not token:
+        return RedirectResponse("/", status_code=302)
+    try:
+        details = decode_token(token)
+    except Exception:
+        response = RedirectResponse("/", status_code=302)
+        response.delete_cookie("token")
+        return response
+    else:
+        name = details.get("name")
+        users = client["user_added_tasks"]
+        individual_user = users[name]
+        data = list(individual_user.find())   # use list, not dict
+        return templates.TemplateResponse("home.html", {"request": request, "name": name, "data": data})
 
 @app.get("/settings",response_class=HTMLResponse)
 def settings_page(request:Request):
@@ -153,5 +165,3 @@ def add_task(request:Request,
             
 
             return templates.TemplateResponse("home.html",{"request":request,"name":name})
-    print(title,description)
-    return templates.TemplateResponse("home.html",{"request":request})
