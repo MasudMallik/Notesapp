@@ -1,3 +1,4 @@
+/* Reset & Base */
 * {
     margin: 0;
     padding: 0;
@@ -104,6 +105,7 @@ body {
     align-items: center;
 }
 
+/* Task Info */
 .task-info h4 {
     margin-bottom: 4px;
     color: #2d3748;
@@ -114,7 +116,7 @@ body {
     color: #718096;
 }
 
-/* Actions */
+/* Task Actions */
 .task-actions {
     display: flex;
     gap: 10px;
