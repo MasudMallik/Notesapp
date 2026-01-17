@@ -43,8 +43,9 @@ def home_page(request: Request):
         name = details.get("name")
         users = client["user_added_tasks"]
         individual_user = users[name]
-        data = list(individual_user.find())   # use list, not dict
+        data = list(individual_user.find())  
         return templates.TemplateResponse("home.html", {"request": request, "name": name, "data": data})
+
 
 @app.get("/settings",response_class=HTMLResponse)
 def settings_page(request:Request):
@@ -128,7 +129,12 @@ def login(request:Request,
             password_to_check=data["password"]
             if check_password(password=password,hashed=password_to_check):
                 token=create_token({"email":email,"name":data["name"]})
-                response=templates.TemplateResponse("home.html",{"request":request,"name":data["name"]})
+                users_=client["user_added_tasks"]
+                name=data["name"]
+                individual_user=users_[name]
+                notes=list(individual_user.find())
+            
+                response=templates.TemplateResponse("home.html",{"request":request,"name":data["name"],"data":notes})
                 response.set_cookie(key="token",value=token,httponly=True)
                 return response
             else:
@@ -162,6 +168,7 @@ def add_task(request:Request,
             users=client["user_added_tasks"]
             individual_user=users[name]
             individual_user.insert_one({"Title": title,"Description":description})
+            data=list(individual_user.find())
             
 
-            return templates.TemplateResponse("home.html",{"request":request,"name":name})
+            return templates.TemplateResponse("home.html",{"request":request,"name":name,"data":data})
