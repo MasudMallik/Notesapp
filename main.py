@@ -201,7 +201,6 @@ async def show_task(request:Request,task_id):
     else:
         try:
             data=decode_token(token=token)
-            print(data)
         except Exception as e:
             response=RedirectResponse("/",status_code=302)
             response.delete_cookie()
@@ -223,7 +222,6 @@ async def edit_data(request:Request,task_id):
     else:
         try:
             data=decode_token(token=token)
-            print(data)
         except Exception as e:
             response=RedirectResponse("/",status_code=302)
             response.delete_cookie()
@@ -246,7 +244,6 @@ async def update_note(request:Request,task_id,title:str=Form(...,description="ti
     else:
         try:
             data=decode_token(token=token)
-            print(data)
         except Exception as e:
             response=RedirectResponse("/",status_code=302)
             response.delete_cookie()
@@ -293,7 +290,6 @@ async def summary(request:Request,task_id):
     else:
         try:
             data=decode_token(token=token)
-            print(data)
         except Exception as e:
             response=RedirectResponse("/",status_code=302)
             response.delete_cookie()
