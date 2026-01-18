@@ -26,16 +26,17 @@ Features
     HTML & CSS only (no JavaScript frontend)
     Clean separation of templates and static files
     
-🛠️ Tech Stack
-    | Layer                 | Technology                    |
-    | --------------------- | ---------------------         |
-    | Backend               | FastAPI                       |
-    | Database              | MongoDB                       |
-    | Templating            | Jinja2                        |
-    | Authentication        | JWT (JSON Web Tokens)         |
-    | Password Hashing      | Custom hashing module(bcrypt) |
-    | AI Integration        | Google Gemini API             |
-    | Environment Variables | python-dotenv                 |
+## 🛠️ Tech Stack
+
+| Layer                 | Technology                    |
+| --------------------- | ----------------------------- |
+| Backend               | FastAPI                       |
+| Database              | MongoDB                       |
+| Templating            | Jinja2                        |
+| Authentication        | JWT (JSON Web Tokens)         |
+| Password Hashing      | Custom hashing module (bcrypt)|
+| AI Integration        | Google Gemini API             |
+| Environment Variables | python-dotenv                 |
     
 🔐 Security Practices
     Passwords are never stored in plain text
