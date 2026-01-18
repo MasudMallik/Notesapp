@@ -1,4 +1,24 @@
 from pydantic import BaseModel,EmailStr,Field,validator,model_validator
+def check_password_streanth(password:str):
+    check={"upper":0,
+                "lower":0,
+                "digit":0,
+                "special character":0
+                }
+    for i in password:
+        if i.isalpha():
+            if i.isupper():
+                check["upper"]+=1
+            else:
+                check["lower"]+=1
+        elif i.isdigit():
+            check["digit"]+=1
+        elif not (i.isalpha() and i.isdigit()):
+            check["special character"]+=1
+        for key,value in check.items():
+            if value==0:
+                raise ValueError(f"password must contain {key}")
+        return password
 class new_user(BaseModel):
     name:str=Field(...,min_length=2,max_length=30)
     email:EmailStr=Field(...)
@@ -13,25 +33,7 @@ class new_user(BaseModel):
         return name
     @validator("password")
     def check_pass(cls,password):
-        check={"upper":0,
-                "lower":0,
-                "digit":0,
-                "special character":0
-                }
-        for i in password:
-            if i.isalpha():
-                if i.isupper():
-                     check["upper"]+=1
-                else:
-                    check["lower"]+=1
-            elif i.isdigit():
-                check["digit"]+=1
-            elif not (i.isalpha() and i.isdigit()):
-                check["special character"]+=1
-        for key,value in check.items():
-            if value==0:
-                raise ValueError(f"password must contain {key}")
-        return password
+       return check_password_streanth(password=password)
     @model_validator(mode="after")
     def check_password_confirm(cls,v):
         if v.password!=v.confirm_password:

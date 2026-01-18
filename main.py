@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Form,Request,BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse,JSONResponse,RedirectResponse
+from fastapi.responses import HTMLResponse,RedirectResponse
 from fastapi.templating import Jinja2Templates
 from modules.user_structure import new_user
 from pydantic import ValidationError
@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 from bson import ObjectId
 from google import genai
+from modules.user_structure import check_password_streanth
 load_dotenv()
 
 
@@ -18,7 +19,7 @@ db=MongoClient(os.getenv("mongodb_url"))
 users=db["user_details"]
 
 
-app=FastAPI()
+app=FastAPI(title="Note storing app",description="you can store notes and summaries it using gemini-api")
 app.mount("/static",StaticFiles(directory="static"),name="static")
 templates=Jinja2Templates(directory="templates")
 
@@ -65,9 +66,7 @@ async def settings_page(request:Request):
         else:
             details_from_db=users["user"]
             data=details_from_db.find_one({"email":details["email"]})
-            print(data["name"])
-            print(data["password"])
-            return templates.TemplateResponse("settings.html",{"request":request,"name":data["name"],"email":data["email"],"password":data["password"]}) 
+            return templates.TemplateResponse("settings.html",{"request":request,"data_id":data["_id"],"name":data["name"],"email":data["email"]}) 
     
 
 
@@ -272,7 +271,6 @@ async def delete_task(request:Request,task_id):
     else:
         try:
             data=decode_token(token=token)
-            print(data)
         except Exception as e:
             response=RedirectResponse("/",status_code=302)
             response.delete_cookie()
@@ -284,17 +282,9 @@ async def delete_task(request:Request,task_id):
             notes=ind_usr.delete_one({"_id":ObjectId(task_id)})
             return RedirectResponse("/home",status_code=302)
 
-# def gemini_ai(request,title,des,name):
-#     apikey=os.getenv("apikey_gemini")
-#     ai=genai.Client(api_key=apikey)
-#     response = ai.models.generate_content(
-#     model="gemini-3-flash-preview",
-#     contents=f"I am providing you the topics and notes:description. generate summary of this datas in less than 150 words the details are 'title of the topic':{title} and the 'description':{des}",
-#     )
-#     return templates.TemplateResponse("summary.html",{"request":request,"name":name,"title":title,"description":des,"summary":response.text})
 
 @app.get("/summary_task/{task_id}",response_class=HTMLResponse)
-async def summary(request:Request,task_id,background_task: BackgroundTasks):
+async def summary(request:Request,task_id):
     token=request.cookies.get("token")
     if not token:
         response=RedirectResponse("/",status_code=302)
@@ -322,3 +312,48 @@ async def summary(request:Request,task_id,background_task: BackgroundTasks):
             contents=f"I am providing you the topics and notes:description. generate summary of this datas in less than 150 words the details are 'title of the topic':{title} and the 'description':{des}",
             )
             return templates.TemplateResponse("summary.html",{"request":request,"name":name,"title":title,"description":des,"summary":response.text})
+@app.post("/change_password/{email}", response_class=HTMLResponse)
+async def change_password(
+    request: Request,
+    email: str,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...)
+):
+    
+
+    users = db["user_details"]
+    ind = users["user"]
+    data=ind.find_one({"email":email})
+
+    user = ind.find_one({"email": email})
+    if not user:
+        return templates.TemplateResponse(
+            "settings.html",
+            {"request": request, "error": "User not found","data_id":data["_id"],"name":data["name"],"email":data["email"]}
+        )
+
+    stored_hash = user["password"]
+
+    if not check_password(password=current_password,hashed=stored_hash):
+        return templates.TemplateResponse(
+            "settings.html",
+            {"request": request, "error": "Incorrect current password","data_id":data["_id"],"name":data["name"],"email":data["email"]}
+        )
+
+    if new_password != confirm_password:
+        return templates.TemplateResponse(
+            "settings.html",
+            {"request": request, "error": "Passwords do not match","data_id":data["_id"],"name":data["name"],"email":data["email"]}
+        )
+    try:
+        check_password_streanth(new_password)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "settings.html",
+            {"request": request, "error": str(e)}
+        )
+    else:
+        new_hash = hash_password(new_password)
+        ind.update_one({"email": email}, {"$set": {"password": new_hash}})
+        return templates.TemplateResponse("settings.html",{"request":request,"error":"password succesfully changed","data_id":data["_id"],"name":data["name"],"email":data["email"]})
