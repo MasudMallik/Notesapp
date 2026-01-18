@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Summary | Note app</title>
+
+    <!-- IMPORTANT: FastAPI static path -->
+    <link rel="stylesheet" href="/static/summary.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2 class="logo">NotesApp</h2>
+        <nav>
+            <a href="/home">📋 Show Notes</a>
+            <a href="/settings">⚙ Settings</a>
+            <a href="/logout" class="logout">🚪 Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <h3>Note Summary</h3>
+            <p class="user-info">
+                Logged in as <span class="username">{{name}}</span>
+            </p>
+        </header>
+
+        <!-- Summary Card -->
+        <section class="summary-section">
+            <div class="summary-card">
+
+                <div class="block">
+                    <span class="label">Topic</span>
+                    <p class="value">{{title}}</p>
+                </div>
+
+                <div class="block">
+                    <span class="label">Description</span>
+                    <p class="value">{{description}}</p>
+                </div>
+
+                <div class="block summary-highlight">
+                    <span class="label">Summary</span>
+                    <p class="value">{{summary}}</p>
+                </div>
+
+                <div class="actions">
+                    <a href="/home" class="close-btn">Close</a>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

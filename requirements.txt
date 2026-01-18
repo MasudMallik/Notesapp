@@ -10,3 +10,4 @@ dotenv
 pydantic[email]
 pymongo[srv]
 dnspython
+google-genai

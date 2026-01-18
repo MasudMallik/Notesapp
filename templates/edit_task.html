@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Task | Todo App</title>
+    <title>Add Task | Notes App</title>
     <link rel="stylesheet" href="/static/add_task.css">
 </head>
 <body>
@@ -11,10 +11,10 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-        <h2 class="logo">TodoApp</h2>
+        <h2 class="logo">NotesApp</h2>
 
         <nav>
-            <a href="/home">📋 Show Tasks</a>
+            <a href="/home">📋 Show Notes</a>
             <a href="/settings">⚙ Settings</a>
             <a href="/logout" class="logout">🚪 Logout</a>
         </nav>
@@ -25,7 +25,7 @@
 
         <!-- Top Bar -->
         <header class="top-bar">
-            <h3>Update Task</h3>
+            <h3>Update Note</h3>
             <p class="user-info">Logged in as <span class="username">{{name}}</span></p>
         </header>
 
@@ -36,19 +36,19 @@
                 <form action="/update_task/{{notes._id}}" method="post">
 
                     <div class="input-group">
-                        <label for="title">Task Title</label>
+                        <label for="title">Topic</label>
                         <input type="text" id="title" name="title"
                               value="{{notes['Title']}}" required>
                     </div>
 
                     <div class="input-group">
-                        <label for="description">Task Description</label>
+                        <label for="description">Note's Description</label>
                         <textarea id="description" name="description"
                                    required>{{notes['Description'].strip('""')}}</textarea>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="save-btn">Update Task</button>
+                        <button type="submit" class="save-btn">Update Note</button>
                         <a href="/home" class="cancel-btn">Cancel</a>
                     </div>
 

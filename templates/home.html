@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home | Todo App</title>
+    <title>Home | Notes App</title>
     <link rel="stylesheet" href="/static/home.css">
 </head>
 <body>
@@ -11,9 +11,9 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-        <h2 class="logo">TodoApp</h2>
+        <h2 class="logo">NotesApp</h2>
         <nav>
-            <a href="/home" class="active">📋 Show Tasks</a>
+            <a href="/home" class="active">📋 Show Notes</a>
             <a href="/settings">⚙ Settings</a>
             <a href="/logout" class="logout">🚪 Logout</a>
         </nav>
@@ -28,7 +28,7 @@
                 Welcome, <span class="username">{{name}}</span>
             </h3>
             <form action="/add_task" method="get">
-                <button class="add-btn">+ Add Task</button>
+                <button class="add-btn">+ Add Note</button>
             </form>
         </header>
 
@@ -47,6 +47,9 @@
                 <!-- Task Actions -->
                     
                 <div class="task-actions">
+                    <form action="/summary_task/{{ task._id }}" method="get">
+                            <button class="view_btn">summary</button>
+                        </form>
                         <form action="/view_task/{{ task._id }}" method="get">
                             <button class="view_btn">View</button>
                         </form>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Form,Request
+from fastapi import FastAPI,Form,Request,BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse,JSONResponse,RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -10,10 +10,12 @@ from modules.jwt_token import create_token,decode_token
 import os
 from dotenv import load_dotenv
 from bson import ObjectId
+from google import genai
 load_dotenv()
 
-client=MongoClient(os.getenv("mongodb_url"))
-users=client["user_details"]
+
+db=MongoClient(os.getenv("mongodb_url"))
+users=db["user_details"]
 
 
 app=FastAPI()
@@ -21,16 +23,16 @@ app.mount("/static",StaticFiles(directory="static"),name="static")
 templates=Jinja2Templates(directory="templates")
 
 @app.get("/",response_class=HTMLResponse)
-def login(request:Request):
+async def login(request:Request):
     return templates.TemplateResponse("login.html",{"request":request})
 
 @app.get("/register",response_class=HTMLResponse)
-def register(request:Request):
+async def register(request:Request):
     return templates.TemplateResponse("register.html",{"request":request})
 
 
 @app.get("/home", response_class=HTMLResponse)
-def home_page(request: Request):
+async def home_page(request: Request):
     token = request.cookies.get("token")
     if not token:
         return RedirectResponse("/", status_code=302)
@@ -42,14 +44,14 @@ def home_page(request: Request):
         return response
     else:
         name = details.get("name")
-        users = client["user_added_tasks"]
+        users = db["user_added_tasks"]
         individual_user = users[name]
         data = list(individual_user.find())  
         return templates.TemplateResponse("home.html", {"request": request, "name": name, "data": data})
 
 
 @app.get("/settings",response_class=HTMLResponse)
-def settings_page(request:Request):
+async def settings_page(request:Request):
     token=request.cookies.get("token")
     if not token:
         return RedirectResponse("/",status_code=302)
@@ -70,7 +72,7 @@ def settings_page(request:Request):
 
 
 @app.get("/add_task",response_class=HTMLResponse)
-def add_task(request:Request):
+async def add_task(request:Request):
     tok=request.cookies.get("token")
     if not tok:
         return RedirectResponse("/",status_code=302)
@@ -86,8 +88,19 @@ def add_task(request:Request):
             return templates.TemplateResponse("add_task.html",{"request":request,"name":name})
 
 @app.get("/show_task",response_class=HTMLResponse)
-def show_task(request:Request):
-    return templates.TemplateResponse("show_task.html",{"request":request})
+async def show_task(request:Request):
+    user=request.cookies.get("token")
+    if not user:
+        return RedirectResponse("/",status_code=302)
+    else:
+        try:
+            data=decode_token(user)
+        except Exception:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie("token")
+            return response
+        else:
+            return templates.TemplateResponse("show_task.html",{"request":request})
 
 @app.post("/register",response_class=HTMLResponse)
 async def register(request:Request,
@@ -128,7 +141,7 @@ async def register(request:Request,
         return templates.TemplateResponse("login.html",{"request":request,"confirm":"user succesfully created"})
     
 @app.post("/",response_class=HTMLResponse)
-def login(request:Request,
+async def login(request:Request,
           email:str=Form(...,description="enter your email"),
           password:str=Form(...,description="enter your password")):
     if email and password:
@@ -137,7 +150,7 @@ def login(request:Request,
             password_to_check=data["password"]
             if check_password(password=password,hashed=password_to_check):
                 token=create_token({"email":email,"name":data["name"]})
-                users_=client["user_added_tasks"]
+                users_=db["user_added_tasks"]
                 name=data["name"]
                 individual_user=users_[name]
                 notes=list(individual_user.find())
@@ -157,7 +170,7 @@ async def logout(request:Request):
     return response
 
 @app.post("/add_task",response_class=HTMLResponse)
-def add_task(request:Request,
+async def add_task(request:Request,
              title:str=Form(...,description="title of your task"),
              description:str=Form(...,description="description of your task")):
     user=request.cookies.get("token")
@@ -172,7 +185,7 @@ def add_task(request:Request,
             return response
         else:
             name=data.get("name")
-            users=client["user_added_tasks"]
+            users=db["user_added_tasks"]
             individual_user=users[name]
             individual_user.insert_one({"Title": title,"Description":description})
             data=list(individual_user.find())
@@ -180,7 +193,7 @@ def add_task(request:Request,
 
 ##
 @app.get("/view_task/{task_id}",response_class=HTMLResponse)
-def show_task(request:Request,task_id):
+async def show_task(request:Request,task_id):
     token=request.cookies.get("token")
     if not token:
         response=RedirectResponse("/",status_code=302)
@@ -195,14 +208,14 @@ def show_task(request:Request,task_id):
             response.delete_cookie()
             return response
         else:
-            usersdet=client["user_added_tasks"]
+            usersdet=db["user_added_tasks"]
             name=data.get("name")
             ind_usr=usersdet[name]
             notes=ind_usr.find_one({"_id":ObjectId(task_id)})
             return templates.TemplateResponse("show_task.html",{"request":request,"notes":notes,"name":name})
         
 @app.get("/edit_task/{task_id}")
-def edit_data(request:Request,task_id):
+async def edit_data(request:Request,task_id):
     token=request.cookies.get("token")
     if not token:
         response=RedirectResponse("/",status_code=302)
@@ -217,7 +230,7 @@ def edit_data(request:Request,task_id):
             response.delete_cookie()
             return response
         else:
-            usersdet=client["user_added_tasks"]
+            usersdet=db["user_added_tasks"]
             name=data.get("name")
             ind_usr=usersdet[name]
             notes=ind_usr.find_one({"_id":ObjectId(task_id)})
@@ -240,7 +253,7 @@ async def update_note(request:Request,task_id,title:str=Form(...,description="ti
             response.delete_cookie()
             return response
         else:
-            usersdet=client["user_added_tasks"]
+            usersdet=db["user_added_tasks"]
             name=data.get("name")
             ind_usr=usersdet[name]
             n=ind_usr.update_one({"_id": ObjectId(task_id)},
@@ -250,7 +263,7 @@ async def update_note(request:Request,task_id,title:str=Form(...,description="ti
         return templates.TemplateResponse("home.html", {"request": request, "name": name, "data": data})
     
 @app.post("/delete_task/{task_id}",response_class=HTMLResponse)
-def delete_task(request:Request,task_id):
+async def delete_task(request:Request,task_id):
     token=request.cookies.get("token")
     if not token:
         response=RedirectResponse("/",status_code=302)
@@ -265,8 +278,47 @@ def delete_task(request:Request,task_id):
             response.delete_cookie()
             return response
         else:
-            usersdet=client["user_added_tasks"]
+            usersdet=db["user_added_tasks"]
             name=data.get("name")
             ind_usr=usersdet[name]
             notes=ind_usr.delete_one({"_id":ObjectId(task_id)})
             return RedirectResponse("/home",status_code=302)
+
+# def gemini_ai(request,title,des,name):
+#     apikey=os.getenv("apikey_gemini")
+#     ai=genai.Client(api_key=apikey)
+#     response = ai.models.generate_content(
+#     model="gemini-3-flash-preview",
+#     contents=f"I am providing you the topics and notes:description. generate summary of this datas in less than 150 words the details are 'title of the topic':{title} and the 'description':{des}",
+#     )
+#     return templates.TemplateResponse("summary.html",{"request":request,"name":name,"title":title,"description":des,"summary":response.text})
+
+@app.get("/summary_task/{task_id}",response_class=HTMLResponse)
+async def summary(request:Request,task_id,background_task: BackgroundTasks):
+    token=request.cookies.get("token")
+    if not token:
+        response=RedirectResponse("/",status_code=302)
+        response.delete_cookie()
+        return response
+    else:
+        try:
+            data=decode_token(token=token)
+            print(data)
+        except Exception as e:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie()
+            return response
+        else:
+            usersdet=db["user_added_tasks"]
+            name=data.get("name")
+            ind_usr=usersdet[name]
+            notes=ind_usr.find_one({"_id":ObjectId(task_id)})
+            apikey=os.getenv("apikey_gemini")
+            ai=genai.Client(api_key=apikey)
+            title=notes["Title"]
+            des=notes["Description"]
+            response = ai.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=f"I am providing you the topics and notes:description. generate summary of this datas in less than 150 words the details are 'title of the topic':{title} and the 'description':{des}",
+            )
+            return templates.TemplateResponse("summary.html",{"request":request,"name":name,"title":title,"description":des,"summary":response.text})

@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register | Todo App</title>
+    <title>Register | Note App</title>
     <link rel="stylesheet" href="/static/register.css">
 </head>
 <body>
 
 <div class="register-container">
     <h2>Create Account</h2>
-    <p class="subtitle">Start managing your todos</p>
+    <p class="subtitle">Start managing your Notes</p>
 
     <form action="/register" method="post">
         <div class="input-group">
@@ -24,7 +24,7 @@
 
         <div class="input-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Create a password" required>
+            <input type="text" id="password" name="password" placeholder="Create a password" title="Password must be longer than 4 characters, include at least 1 uppercase letter, 1 lowercase letter, and 1 special character" required>
         </div>
 
         <div class="input-group">

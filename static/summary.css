@@ -71,57 +71,59 @@ body {
     font-weight: 600;
 }
 
-/* View Section */
-.view-section {
-    max-width: 900px;   /* increased size */
-    margin: 0 auto;     /* keep centered */
+/* Summary Section */
+.summary-section {
+    max-width: 700px;
 }
 
-/* Task View Card */
-.task-view-card {
+/* Summary Card */
+.summary-card {
     background-color: white;
-    padding: 40px;      /* more padding */
-    border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    min-height: 300px;  /* taller card */
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
-/* Title */
-.task-title {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 10px;
+/* Blocks */
+.block {
+    margin-bottom: 22px;
 }
 
-.task-title h4 {
+.label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #718096;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.value {
+    font-size: 15px;
     color: #2d3748;
-    font-size: 22px; /* slightly larger */
-}
-
-/* Content */
-.task-content {
-    margin-top: 15px;
-}
-
-.task-content p {
-    color: #4a5568;
-    font-size: 16px; /* slightly larger text */
     line-height: 1.6;
+}
+
+/* Summary Highlight */
+.summary-highlight {
+    background-color: #edf2f7;
+    padding: 16px;
+    border-radius: 10px;
 }
 
 /* Actions */
 .actions {
-    margin-top: 25px;
+    margin-top: 30px;
     text-align: right;
 }
 
 .close-btn {
-    padding: 12px 20px;
+    padding: 10px 20px;
     background-color: #4c51bf;
     color: white;
     border-radius: 8px;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .close-btn:hover {
