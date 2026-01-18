@@ -11,9 +11,27 @@ import os
 from dotenv import load_dotenv
 from bson import ObjectId
 from google import genai
-from modules.user_structure import check_password_streanth
 load_dotenv()
-
+def check_password_streanth(password:str):
+    check={"upper":0,
+                "lower":0,
+                "digit":0,
+                "special character":0
+                }
+    for i in password:
+        if i.isalpha():
+            if i.isupper():
+                check["upper"]+=1
+            else:
+                check["lower"]+=1
+        elif i.isdigit():
+            check["digit"]+=1
+        elif not (i.isalpha() and i.isdigit()):
+            check["special character"]+=1
+    for key,value in check.items():
+        if value==0:
+            raise ValueError(f"password must contain {key}")
+    return password
 
 db=MongoClient(os.getenv("mongodb_url"))
 users=db["user_details"]
