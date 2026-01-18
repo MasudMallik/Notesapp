@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Home | Todo App</title>
-    <link rel="stylesheet" href="static/home.css">
+    <link rel="stylesheet" href="/static/home.css">
 </head>
 <body>
 
@@ -33,6 +33,7 @@
         </header>
 
         <!-- Task List -->
+        {% if data %}
         <section class="task-list">
             {% for task in data %}
             <div class="task-card">
@@ -40,22 +41,29 @@
                 <!-- Task Info -->
                 <div class="task-info">
                     <h4>{{ task["Title"] }}</h4>
-                    <p>{{ task["Description"] }}</p>
+                    <p>{{ task["Description"].strip('""').split('\n')[0] }}</p>
                 </div>
 
                 <!-- Task Actions -->
+                    
                 <div class="task-actions">
-                    <form action="/edit-task/{{ task._id }}" method="get">
-                        <button class="edit-btn">Edit</button>
-                    </form>
-                    <form action="/delete-task/{{ task._id }}" method="post">
-                        <button class="delete-btn">Delete</button>
-                    </form>
+                        <form action="/view_task/{{ task._id }}" method="get">
+                            <button class="view_btn">View</button>
+                        </form>
+                        <form action="/edit_task/{{ task._id }}" method="get">
+                            <button class="edit-btn">Edit</button>
+                        </form>
+                        <form action="/delete_task/{{ task._id }}" method="post">
+                            <button class="delete-btn">Delete</button>
+                        </form>
                 </div>
 
             </div>
             {% endfor %}
         </section>
+        {% else %}
+        <h2>Dont have any Notes.</h2>
+        {%endif%}
 
     </main>
 </div>

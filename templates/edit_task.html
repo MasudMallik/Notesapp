@@ -25,7 +25,7 @@
 
         <!-- Top Bar -->
         <header class="top-bar">
-            <h3>Add New Task</h3>
+            <h3>Update Task</h3>
             <p class="user-info">Logged in as <span class="username">{{name}}</span></p>
         </header>
 
@@ -33,22 +33,22 @@
         <section class="task-form-section">
             <div class="task-card">
 
-                <form action="/add_task" method="post">
+                <form action="/update_task/{{notes._id}}" method="post">
 
                     <div class="input-group">
                         <label for="title">Task Title</label>
                         <input type="text" id="title" name="title"
-                               placeholder="Enter task title" required>
+                              value="{{notes['Title']}}" required>
                     </div>
 
                     <div class="input-group">
                         <label for="description">Task Description</label>
                         <textarea id="description" name="description"
-                                  placeholder="Enter task details" required></textarea>
+                                   required>{{notes['Description'].strip('""')}}</textarea>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="save-btn">Save Task</button>
+                        <button type="submit" class="save-btn">Update Task</button>
                         <a href="/home" class="cancel-btn">Cancel</a>
                     </div>
 

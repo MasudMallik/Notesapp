@@ -9,6 +9,7 @@ from modules.hash_user_data import hash_password,check_password
 from modules.jwt_token import create_token,decode_token
 import os
 from dotenv import load_dotenv
+from bson import ObjectId
 load_dotenv()
 
 client=MongoClient(os.getenv("mongodb_url"))
@@ -62,6 +63,8 @@ def settings_page(request:Request):
         else:
             details_from_db=users["user"]
             data=details_from_db.find_one({"email":details["email"]})
+            print(data["name"])
+            print(data["password"])
             return templates.TemplateResponse("settings.html",{"request":request,"name":data["name"],"email":data["email"],"password":data["password"]}) 
     
 
@@ -82,6 +85,9 @@ def add_task(request:Request):
             name=data.get("name")
             return templates.TemplateResponse("add_task.html",{"request":request,"name":name})
 
+@app.get("/show_task",response_class=HTMLResponse)
+def show_task(request:Request):
+    return templates.TemplateResponse("show_task.html",{"request":request})
 
 @app.post("/register",response_class=HTMLResponse)
 async def register(request:Request,
@@ -114,7 +120,9 @@ async def register(request:Request,
                 {"request": request, "confirm": t}
             )
         new_hashed_password=hash_password(password)
-        print(password,new_hashed_password)
+        check=users["user"]
+        if check.find_one({"email":email}):
+            return templates.TemplateResponse("login.html",{"request":request,"confirm":"you already have an account"})
         collections=users["user"]
         collections.insert_one({"name":name,"email":email,"password":new_hashed_password})
         return templates.TemplateResponse("login.html",{"request":request,"confirm":"user succesfully created"})
@@ -148,7 +156,6 @@ async def logout(request:Request):
     response.delete_cookie("token")
     return response
 
-###################     ###############
 @app.post("/add_task",response_class=HTMLResponse)
 def add_task(request:Request,
              title:str=Form(...,description="title of your task"),
@@ -169,6 +176,97 @@ def add_task(request:Request,
             individual_user=users[name]
             individual_user.insert_one({"Title": title,"Description":description})
             data=list(individual_user.find())
-            
-
             return templates.TemplateResponse("home.html",{"request":request,"name":name,"data":data})
+
+##
+@app.get("/view_task/{task_id}",response_class=HTMLResponse)
+def show_task(request:Request,task_id):
+    token=request.cookies.get("token")
+    if not token:
+        response=RedirectResponse("/",status_code=302)
+        response.delete_cookie()
+        return response
+    else:
+        try:
+            data=decode_token(token=token)
+            print(data)
+        except Exception as e:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie()
+            return response
+        else:
+            usersdet=client["user_added_tasks"]
+            name=data.get("name")
+            ind_usr=usersdet[name]
+            notes=ind_usr.find_one({"_id":ObjectId(task_id)})
+            return templates.TemplateResponse("show_task.html",{"request":request,"notes":notes,"name":name})
+        
+@app.get("/edit_task/{task_id}")
+def edit_data(request:Request,task_id):
+    token=request.cookies.get("token")
+    if not token:
+        response=RedirectResponse("/",status_code=302)
+        response.delete_cookie()
+        return response
+    else:
+        try:
+            data=decode_token(token=token)
+            print(data)
+        except Exception as e:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie()
+            return response
+        else:
+            usersdet=client["user_added_tasks"]
+            name=data.get("name")
+            ind_usr=usersdet[name]
+            notes=ind_usr.find_one({"_id":ObjectId(task_id)})
+            return templates.TemplateResponse("edit_task.html",{"request":request,"notes":notes,"name":name})
+        
+@app.post("/update_task/{task_id}",response_class=HTMLResponse)
+async def update_note(request:Request,task_id,title:str=Form(...,description="title of your task"),
+             description:str=Form(...,description="description of your task")):
+    token=request.cookies.get("token")
+    if not token:
+        response=RedirectResponse("/",status_code=302)
+        response.delete_cookie()
+        return response
+    else:
+        try:
+            data=decode_token(token=token)
+            print(data)
+        except Exception as e:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie()
+            return response
+        else:
+            usersdet=client["user_added_tasks"]
+            name=data.get("name")
+            ind_usr=usersdet[name]
+            n=ind_usr.update_one({"_id": ObjectId(task_id)},
+        {"$set": {"Title": title, "Description": description}}
+)
+        data = list(ind_usr.find())  
+        return templates.TemplateResponse("home.html", {"request": request, "name": name, "data": data})
+    
+@app.post("/delete_task/{task_id}",response_class=HTMLResponse)
+def delete_task(request:Request,task_id):
+    token=request.cookies.get("token")
+    if not token:
+        response=RedirectResponse("/",status_code=302)
+        response.delete_cookie()
+        return response
+    else:
+        try:
+            data=decode_token(token=token)
+            print(data)
+        except Exception as e:
+            response=RedirectResponse("/",status_code=302)
+            response.delete_cookie()
+            return response
+        else:
+            usersdet=client["user_added_tasks"]
+            name=data.get("name")
+            ind_usr=usersdet[name]
+            notes=ind_usr.delete_one({"_id":ObjectId(task_id)})
+            return RedirectResponse("/home",status_code=302)

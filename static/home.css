@@ -135,6 +135,7 @@ body {
     background-color: #2b6cb0;
 }
 
+
 .delete-btn {
     padding: 6px 12px;
     background-color: #e53e3e;
@@ -146,4 +147,16 @@ body {
 
 .delete-btn:hover {
     background-color: #c53030;
+}
+.view_btn {
+    padding: 6px 12px;
+    background-color: #38a169; /* green */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.view_btn:hover {
+    background-color: #2f855a;
 }

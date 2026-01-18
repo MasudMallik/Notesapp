@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Task | Todo App</title>
+    <link rel="stylesheet" href="/static/show_task.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2 class="logo">TodoApp</h2>
+        <nav>
+            <a href="/home">📋 Show Tasks</a>
+            <a href="/settings">⚙ Settings</a>
+            <a href="/logout" class="logout">🚪 Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <h3>View Task</h3>
+            <p class="user-info">Logged in as <span class="username">{{name}}</span></p>
+        </header>
+
+        <!-- View Task Card -->
+        <section class="view-section">
+            <div class="task-view-card">
+
+                <div class="task-title">
+                    <h4>{{notes["Title"]}}</h4>
+                </div>
+
+                <div class="task-content">
+                    <p>{{notes["Description"].strip('""')}}
+                    </p>
+                </div>
+
+                <div class="actions">
+                    <a href="/home" class="close-btn">Close</a>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>
