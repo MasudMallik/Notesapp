@@ -143,7 +143,7 @@ async def register(request:Request,
                 elif "email" in loc:
                     t.append("Give correct email")
                 elif "password" in loc:
-                    t.append("Give strong password")
+                    t.append("password must containatleast one lower,upper and special characet should be there")
 
             return templates.TemplateResponse(
                 "register.html",
