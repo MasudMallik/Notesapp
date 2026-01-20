@@ -13,17 +13,17 @@ from bson import ObjectId
 from google import genai
 load_dotenv()
 def check_password_streanth(password:str):
-    check={"upper":0,
-                "lower":0,
+    check={"upper case":0,
+                "lower case":0,
                 "digit":0,
                 "special character":0
                 }
     for i in password:
         if i.isalpha():
             if i.isupper():
-                check["upper"]+=1
+                check["upper case"]+=1
             else:
-                check["lower"]+=1
+                check["lower case"]+=1
         elif i.isdigit():
             check["digit"]+=1
         elif not (i.isalpha() and i.isdigit()):
